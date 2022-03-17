@@ -1,5 +1,6 @@
 import {MiddlewareConsumer, Module, NestModule} from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import {BatchModule} from "./batch/batch.module";
 import { TypeOrmModule } from '@nestjs/typeorm';
 import emailConfig from './config/emailConfig';
 import authConfig from './config/authConfig';
@@ -8,10 +9,21 @@ import { UsersModule } from './users/users.module';
 import { LoggerMiddleware } from './logger/logger.middleware';
 import { LoggerMiddleware2 } from './logger/logger.middleware2';
 import {UsersController} from "./users/users.controller";
+import { ScheduleModule } from '@nestjs/schedule';
+import {TaskService} from "./task/task.service";
+import * as winston from 'winston';
+import {
+  utilities as nestWinstonModuleUtilities,
+  WinstonModule,
+} from 'nest-winston';
+import {MemberModule} from "./member/member.module";
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     UsersModule,
+    MemberModule,
+    BatchModule,
     ConfigModule.forRoot({
       envFilePath: [`${__dirname}/config/env/.${process.env.NODE_ENV}.env`],
       load: [emailConfig, authConfig],
@@ -30,10 +42,22 @@ import {UsersController} from "./users/users.controller";
       synchronize: Boolean(process.env.DATABASE_SYNCHRONIZE), // true,
     }),*/
 
+    WinstonModule.forRoot({
+      transports: [
+        new winston.transports.Console({
+          level: process.env.NODE_ENV === 'development' ? 'info' : 'silly',
+          format: winston.format.combine(
+              winston.format.timestamp(),
+              nestWinstonModuleUtilities.format.nestLike('MyApp', { prettyPrint: true }),
+          ),
+        }),
+      ],
+    }),
+
     TypeOrmModule.forRoot(),
   ],
   controllers: [],
-  providers: [],
+  providers: [TaskService],
 })
 export class AppModule implements NestModule{
   configure(consumer:MiddlewareConsumer):any{

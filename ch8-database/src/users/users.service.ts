@@ -1,7 +1,7 @@
 import * as uuid from 'uuid';
 import {
   Injectable,
-  InternalServerErrorException,
+  InternalServerErrorException, Logger,
   NotFoundException,
   UnprocessableEntityException
 } from '@nestjs/common';
@@ -12,14 +12,17 @@ import { Connection, Repository } from 'typeorm';
 import { UserEntity } from './entity/user.entity';
 import { ulid } from 'ulid';
 import { AuthService } from 'src/auth/auth.service';
+import { UserRepository } from 'src/users/repository/user.repository'
 
 @Injectable()
 export class UsersService {
+
   constructor(
     private emailService: EmailService,
     private authService: AuthService,
     @InjectRepository(UserEntity) private usersRepository: Repository<UserEntity>,
     private connection: Connection,
+    private readonly userRepository: UserRepository,
   ) { }
 
   async createUser(name: string, email: string, password: string) {
@@ -34,7 +37,7 @@ export class UsersService {
     //await this.saveUserUsingQueryRunner(name, email, password, signupVerifyToken);
     await this.saveUserUsingTransaction(name, email, password, signupVerifyToken);
 
-    await this.sendMemberJoinEmail(email, signupVerifyToken);
+    //await this.sendMemberJoinEmail(email, signupVerifyToken);
   }
 
   private async checkUserExists(emailAddress: string): Promise<boolean> {
@@ -144,5 +147,18 @@ export class UsersService {
       name: user.name,
       email: user.email,
     };
+  }
+
+  public async findOneByUserId(userId: string) {
+
+    return this.userRepository.findOne({ id: userId })
+  }
+
+  public async findOneByEmail(email: string) {
+    return this.userRepository.findOne({ email })
+  }
+
+  public async findOneByNickname(name: string) {
+    return this.userRepository.findOne({ name })
   }
 }

@@ -5,11 +5,12 @@ import { EmailModule } from 'src/email/email.module';
 import { UserEntity } from './entity/user.entity';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
+import {UserRepository} from "./repository/user.repository";
 
 @Module({
   imports: [
     EmailModule,
-    TypeOrmModule.forFeature([UserEntity]),
+    TypeOrmModule.forFeature([UserEntity, UserRepository]),
     AuthModule
   ],
   controllers: [UsersController],
