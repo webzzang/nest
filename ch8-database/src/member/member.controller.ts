@@ -43,4 +43,12 @@ export class MemberController {
 
     return await this.memberService.findViewEntity(id);
   }
+
+  @Get('/or')
+  async findOr(@Param('id') id:string): Promise<any> {
+    this.loggers.log("~~~~~~~~~~~~~~~~~~~~~~###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    this.loggers.log("id : ", id);
+
+    return await this.memberService.findOr(id);
+  }
 }
